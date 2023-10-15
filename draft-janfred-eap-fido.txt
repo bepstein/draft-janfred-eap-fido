@@ -2,9 +2,9 @@
 
 
 
-Network Working Group                                     J.-F. Rieckers
+EAP Method Update                                         J.-F. Rieckers
 Internet-Draft                                                       DFN
-Intended status: Informational                                 S. Winter
+Intended status: Standards Track                               S. Winter
 Expires: 17 April 2024                                           RESTENA
                                                          15 October 2023
 
@@ -17,17 +17,17 @@ Abstract
    This document specifies an EAP method leveraging FIDO2 keys for
    authentication in EAP.
 
-Discussion Venues
+About This Document
 
    This note is to be removed before publishing as an RFC.
 
-   Discussion of this document takes place on the Extensible
-   Authentication Protocol Working Group mailing list
-   (eap@frascone.com), which is archived at
-   https://mail.frascone.com/pipermail/eap/.
+   Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-janfred-eap-fido/.
 
-   Source for this draft and an issue tracker can be found at
-   https://github.com/Janfred/draft-janfred-eap-fido.
+   Discussion of this document takes place on the EAP Method Update
+   Working Group mailing list (mailto:emu@ietf.org), which is archived
+   at https://mailarchive.ietf.org/arch/browse/emu/.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/emu/.
 
 Status of This Memo
 
@@ -55,7 +55,10 @@ Copyright Notice
    Provisions Relating to IETF Documents (https://trustee.ietf.org/
    license-info) in effect on the date of publication of this document.
    Please review these documents carefully, as they describe your rights
-   and restrictions with respect to this document.
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
 
 Table of Contents
 
@@ -64,7 +67,12 @@ Table of Contents
    3.  Overview over the EAP-FIDO protocol
      3.1.  TLS handshake phase
      3.2.  FIDO-exchange phase
-   4.  EAP-FIDO protocol flow
+   4.  EAP-FIDO protocol flow and message format
+     4.1.  Preconditions and Configuration
+     4.2.  TLS handshake
+     4.3.  FIDO-exchange
+       4.3.1.  Message format
+       4.3.2.  Potocol Sequence
    5.  Implementation Guidelines
    6.  Design decisions
      6.1.  Registration of FIDO2 keys is out of scope
@@ -154,12 +162,12 @@ Table of Contents
 3.1.  TLS handshake phase
 
    During the TLS handshake phase, the client and server establish a TLS
-   tunnel.  This is done using EAP-TLS [RFC5216], [RFC9190] with the
-   modifications described in TODO:SECTION LINK.  As part of the TLS
-   handshake protocol, the EAP-FIDO server will send its certificate
-   along with a chain of certificates leading to the certificate of a
-   trusted CA.  The client will check this certificate using the rules
-   in TODO:SECTION LINK.
+   tunnel.  This is done using EAP-TLS [RFC5216], [RFC9190], [RFC9427]
+   with the modifications described in TODO:SECTION LINK.  As part of
+   the TLS handshake protocol, the EAP-FIDO server will send its
+   certificate along with a chain of certificates leading to the
+   certificate of a trusted CA.  The client will check this certificate
+   using the rules in TODO:SECTION LINK.
 
    Once the TLS tunnel is established, the client and server proceed to
    the FIDO-exchange phase to perform the authentication of the client.
@@ -181,7 +189,72 @@ Table of Contents
    answer with a list of FIDO key IDs and the client will attempt to use
    one of these keys to authenticate.
 
-4.  EAP-FIDO protocol flow
+4.  EAP-FIDO protocol flow and message format
+
+   This section describes the preconditions and the configuration needed
+   for EAP-FIDO, the protocol flow and the message format
+
+4.1.  Preconditions and Configuration
+
+   In order to successfully perform an EAP-FIDO authentication, the
+   server and the client have to meet some preconditions and need to
+   have a configuration.
+
+   EAP-FIDO assumes that the FIOD authenticator is already registered
+   with the server, that is, the EAP-FIDO server has access to the
+   public key used to verify the authenticator's response as well as the
+   corresponding credential id.
+
+   On the client side, the supplicant must be configured with the
+   Relying Party ID, and, if Passkeys are not used, with a Username.
+
+4.2.  TLS handshake
+
+   *  TLSv1.3 mandatory
+
+   *  Certificate Check against publicly trusted CAs
+
+   *  Certificate Name Check with RPID
+
+   *  SNI?
+
+4.3.  FIDO-exchange
+
+   *  Server sends initial data
+
+      -  RPID?
+
+      -  Auth request level (Silent, up, uv)
+
+      -  Additional Client-Data
+
+   *  Choice: Passkey or not?
+
+      -  When Passkey: GOTO "Client sends response"
+
+   *  Client sends Username
+
+   *  Server sends Key-List
+
+   *  Client sends response
+
+   *  Choice: Result
+
+      -  When Successful and sufficient:
+
+         o  Protected Success Indicator
+
+      -  When Successful and not sufficient:
+
+         o  Server sends signature request again with more information
+
+      -  When not Successful:
+
+         o  Protected Failure Indicator
+
+4.3.1.  Message format
+
+4.3.2.  Potocol Sequence
 
 5.  Implementation Guidelines
 
@@ -195,7 +268,7 @@ Table of Contents
    The FIDO CTAP2 protocol has distinct primitives for the registration
    and the usage of a FIDO2 credential.  This specification requires
    that the registratrion of the security token has been done out-of-
-   band, for example using the WebAuthN protocol in a browser context.
+   band, for example using the WebAuthn protocol in a browser context.
 
    There are multiple degrees of freedom when registering a token with
    CTAP2.  This specification recognises the following choices at
@@ -246,10 +319,13 @@ Table of Contents
       facial recognition)
 
    During authentication transactions, an EAP-FIDO server can request
-   one of three levels of asserting user presence. - Silent (interaction
-   with a human is not required) - UP (physical interaction with a
-   person is required) - UV (physical interaction with the registered
-   user is required).
+   one of three levels of asserting user presence.
+
+   *  Silent (interaction with a human is not required)
+
+   *  UP (physical interaction with a person is required)
+
+   *  UV (physical interaction with the registered user is required).
 
    An authentication transaction can not request a higher level than was
    set at registration time; i.e. a token registered in UP mode can not
@@ -343,6 +419,11 @@ Table of Contents
               Extensible Authentication Protocol with TLS 1.3",
               RFC 9190, DOI 10.17487/RFC9190, February 2022,
               <https://www.rfc-editor.org/rfc/rfc9190>.
+
+   [RFC9427]  DeKok, A., "TLS-Based Extensible Authentication Protocol
+              (EAP) Types for Use with TLS 1.3", RFC 9427,
+              DOI 10.17487/RFC9427, June 2023,
+              <https://www.rfc-editor.org/rfc/rfc9427>.
 
 9.2.  Informative References
 
