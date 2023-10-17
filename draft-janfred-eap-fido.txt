@@ -92,13 +92,23 @@ Table of Contents
    9.  References
      9.1.  Normative References
      9.2.  Informative References
-   Appendix A.  Open Questions regarding Protocol design
-     A.1.  How to determine the FIDO Relying Party ID?
-       A.1.1.  Option 1: Configuration
-       A.1.2.  Option 2: Mandate RPID to equal Realm of the Username
-       A.1.3.  Option 3: RPID is determined by the server and sent
+   Appendix A.  Example use cases and protocol flows
+     A.1.  Authentication using Passkeys with silent authentication
+     A.2.  Authentication using Passkeys with silent auth for WiFi and
+           uv auth for VPN
+     A.3.  Authentication with non-residential FIDO keys
+     A.4.  Authentication with non-residential FIDO keys and
+           user-specific authentication policies
+     A.5.  Authentication with mandatory verification after a timespan
+     A.6.  Authentication with mandatory verification after a timespan
+           with a grace period
+   Appendix B.  Open Questions regarding Protocol design
+     B.1.  How to determine the FIDO Relying Party ID?
+       B.1.1.  Option 1: Configuration
+       B.1.2.  Option 2: Mandate RPID to equal Realm of the Username
+       B.1.3.  Option 3: RPID is determined by the server and sent
                before the TLS handshake
-       A.1.4.  Option 4: RPID is determined by the server and sent
+       B.1.4.  Option 4: RPID is determined by the server and sent
                after the TLS handshake
    Acknowledgments
    Authors' Addresses
@@ -219,7 +229,7 @@ Table of Contents
    corresponding credential id.
 
    On the client side, the supplicant must be configured with the
-   Relying Party ID (see Appendix A.1, and, if Passkeys are not used,
+   Relying Party ID (see Appendix B.1, and, if Passkeys are not used,
    with a Username.
 
 4.2.  TLS handshake phase
@@ -242,7 +252,7 @@ Table of Contents
 
 
    // Depending on the decision on the way, the RPID is determined, some
-   // additional spec may be added here, see Appendix A.1.
+   // additional spec may be added here, see Appendix B.1.
    //
    // -- Janfred
 
@@ -299,11 +309,17 @@ Table of Contents
 
 4.2.5.  TLS Server Certificate Verification
 
-   (FIXME: Currently only bulletpoints, will be converted into text) *
-   Clients MUST support validating against a built-in list of Root CAs,
-   ideally WebPKI. * Implementations MAY support pinning a trust anchor
-   * The RPID MUST be validated against the certificate name (How
-   exactly is still TODO) * TODO: OCSP Stapling?  Mandatory or not?
+   (FIXME: Currently only bulletpoints, will be converted into text)
+
+   *  Clients MUST support validating against a built-in list of Root
+      CAs, ideally WebPKI.
+
+   *  Implementations MAY support pinning a trust anchor
+
+   *  The RPID MUST be validated against the certificate name (How
+      exactly is still TODO)
+
+   *  TODO: OCSP Stapling?  Mandatory or not?
 
 4.3.  FIDO-exchange
 
@@ -327,6 +343,8 @@ Table of Contents
                +======+=========================+=========+
                | Type | Description             | Sent by |
                +======+=========================+=========+
+               | -2   | Error                   | Both    |
+               +------+-------------------------+---------+
                | -1   | Failure indicator       | Both    |
                +------+-------------------------+---------+
                | 0    | Success indicator       | Both    |
@@ -348,17 +366,16 @@ Table of Contents
    | 0      | UTF-8   | Identity       | User Identity (usually        |
    |        | String  |                | username)                     |
    +--------+---------+----------------+-------------------------------+
-   | 1      | UTF-8   | Relying Party  | See Appendix A.1              |
+   | 1      | UTF-8   | Relying Party  | See Appendix B.1              |
    |        | String  | ID             |                               |
    +--------+---------+----------------+-------------------------------+
    | 2      | Byte    | Additional     | Additional Data to be         |
    |        | String  | Client Data    | signed by the FIDO            |
    |        |         |                | authenticator                 |
    +--------+---------+----------------+-------------------------------+
-   | 3      | Array   | List of        |                               |
-   |        | of Byte | acceptable     |                               |
-   |        | Strings | Public Key     |                               |
-   |        |         | Identifiers    |                               |
+   | 3      | Array   | PKIDs          | List of acceptable            |
+   |        | of Byte |                | Public Key Identifiers        |
+   |        | Strings |                |                               |
    +--------+---------+----------------+-------------------------------+
    | 4      | Byte    | Auth Data      | Authdata according to         |
    |        | String  |                | [WebAuthn], Section 6.1       |
@@ -386,45 +403,192 @@ Table of Contents
 
                     Table 2: Mapkeys for the attributes
 
-4.3.1.1.  Authentication Request
-
-4.3.1.2.  Authentication Response
-
-4.3.1.3.  Information Request
-
-4.3.1.4.  Information Response
-
-4.3.1.5.  Success indicator
+4.3.1.1.  Success indicator
 
    This message is the protected success indicator, as required by
    [RFC9427], Section 5.2.  It is sent by the server to indicate a
    successfull authentication.  Since EAP is a strict request-response
    based protocol, the client needs to reply to this message, so the
-   server can send an EAP-Success message.
+   server can send an EAP-Success message.  The client will acknowledge
+   the reception of this packet through the acknowledgement mechanism in
+   EAP-TLS with an EAP-TLS acknowledgement packet.
 
-4.3.1.6.  Failure indicator
+   To achieve the compatibility with the protected success indication
+   mechanism of other EAP methods, the attributes field of the message
+   MUST be omitted, that is, this message is only one byte with the
+   value of 0x00.
+
+4.3.1.2.  Failure indicator
+
+   A failure indicator message signals a non-recoverable error condition
+   for the current authentication exchange.
+
+   The attributes field of the message MUST contain at least the Error
+   Code attribute and MAY contain the Error Description field.
+
+4.3.1.3.  Authentication Request
+
+   An authentication request is sent by the server to initialize a new
+   authentication request.  With this request, the server sends along
+   information that the client needs to perform the FIDO authentication.
+
+   The attributes field in the authentication request message contain
+   the following attributes:
+
+   Relying Party ID:  The Relying Party ID for the FIDO authentication.
+      See Appendix B.1.
+
+   Additional Client Data:  (Optional) Additional data to be signed by
+      the FIDO authenticator.
+
+   PKIDs:  (Optional) A list of acceptable Public Key Identifiers.  This
+      can be used to trigger a re-authentication of a specific
+      credential or a list of the identifiers for a specific user, if
+      Passkeys are not used.
+
+   Authentication Requirements:  (Optional) A list of requirements for
+      the FIDO authentication.  The possible options for this version of
+      EAP-FIDO are "up" for requesting user presence and "uv" for
+      requesting user verification.  Clients MUST ignore any other
+      value, to ensure forward compatibility.
+
+   Since this packet signals the start of a new authentication, the
+   client MUST discard any information from previous authentication
+   requests and initialize a new authentication, even if the previous
+   authentication exchange was not completed.
+
+4.3.1.4.  Authentication Response
+
+   If a client has sufficient information to perform a FIDO
+   authentication, the client sends an authentication response.  The
+   authentication response signifies the completion of one
+   authentication.  This message can be sent in response to either an
+   Authentication Request or an Information Response.
+
+   The attributes field in the authentication response message
+   contain the following attributes:
+
+   PKID:  The Public Key Identifier of the FIDO key used to generate the
+      signature.
+
+   Auth Data:  The signed auth data as returned from the FIDO
+      authenticator (see [FIDO-CTAP2], Section 6.2)
+
+   FIDO Signature:  The signature as returned from the FIDO
+      authenticator (see [FIDO-CTAP2], Section 6.2)
+
+   All three attributes MUST be present in the authentication response
+   message.
+
+4.3.1.5.  Information Request
+
+   If a client does not have sufficient information to perform the FIDO
+   authentication, the client can send an information request message to
+   the server.
+
+   This is the case if Passkeys are not used, since the FIDO
+   authenticator needs the public key identifier to access the
+   credentials.
+
+   With the information request the client can transmit additional
+   information that help the server to compile this information.
+
+   The attributes field in the information request contains the
+   following attributes:
+
+   Identity:  The identity of the user (usually a username)
+
+4.3.1.6.  Information Response
+
+   The server answers to an Information Request from the client with an
+   Information Response.
+
+   This packet is used to transmit additional information to the client.
+
+   The attributes field in the information response can contain any
+   attribute that is also allowed in the Authentication Request packet.
+   If an attribute was both present in the Authentication Request and
+   the Information Response packet, the client MUST discard the
+   attribute value(s) sent in the Authentication Request and use the
+   value(s) in the Information Response packet.
+
+4.3.1.7.  Error
+
+   The Error message signals an error condition on the client side.
+   This error condition does not neccessarily lead to an authentication
+   failure, since the EAP-FIDO server may decide that the previous
+   authentication is sufficient.  (See Appendix A.6 for an example for
+   this use case)
+
+   The attributes field MUST include the attribute Error Code with an
+   error code describing the error and MAY contain an Error Description
+   attribute with a human-readable error description.
 
 4.3.2.  Potocol Sequence
 
    The FIDO exchange start with the server sending an authentication
-   request to the client.  This message is sent along with the TLS
-   Server Hello.
+   request to the client.  This message is sent along with the last
+   message of the server's TLS handshake.
+
+   The Authentication Request can include authentication requirements,
+   additional client data and a list of Public Key Identifiers.
 
    The client then decides if it has sufficient information to perform
-   the FIDO authentication.  If this is case, the client responds with
-   an authenication response which includes the FIDO response.  If the
-   client needs additional information, i.e. because it does not use
-   Passkeys and therefore needs a list of Key Identifiers, the client
-   sends an information request to the server, which may include
-   additional information from client to help the server to fulfil the
-   information request, i.e. the inner username.  If the server receives
-   such an information request it responds with the additional
-   information.  The client answers then with an authentication
-   response.
+   the FIDO authentication.  This can be done by probing the FIDO
+   authenticator with all information given in the Authentication
+   Request message..
 
-   Depending on the result of the FIDO authentication, the server MAY
-   choose to trigger a second FIDO authentication with a new
-   authentication request packet.
+   If the FIDO authentication is already possible at this point, the
+   client performs the FIDO authentication process and sends an
+   Authentication Response message with the results from the FIDO
+   authentication to the server.  This authentication flow can be used
+   if the FIDO authenticator has a Passkey registered for the given
+   Relying Party ID.
+
+   If the client needs additional information, i.e. because it does not
+   use Passkeys and therefore needs a list of Key Identifiers, the
+   client sends an information request to the server, which may include
+   additional information from client to help the server to fulfil the
+   information request.  In the current specification, this is namely an
+   identifier, from which the EAP-FIDO server can perform a lookup for
+   all registered FIDO credentials registered to this identifier.
+
+   Upon reception of the Information Request message from the client,
+   the server looks up the registered Public Key Identifiers for the
+   given identity.  Depending on the lookup, the requirements for user
+   presence or user verification may change from the previous
+   assumption.  The found Public Key Identifiers, and optionally also
+   the updated authentication requirements, are then sent with the
+   Information Response back to the client.
+
+   The client can now, with the additonal information in the Information
+   Response message, perform the FIDO authentication.  The result of the
+   FIDO authentication is then sent to the Server in an Authentication
+   Response message, which includes the PKID, Auth Data and FIDO
+   Signature from the FIDO authentication result.
+
+   When a server receives an Authentication Response message, it
+   validates the FIDO data.  If the FIDO authentication is successful
+   and the FIDO key has sufficient authorization, the server sends a
+   Success indication message to indicate the Success of the FIDO
+   exchange phase.  The client will acknowledge this packet using the
+   EAP-TLS acknowledgement mechanism and the server sends an EAP-Success
+   message.
+
+   Depending on the result of the FIDO authentication, the user presence
+   or user verification assertions and the policy for a specific FIDO
+   credential, the server MAY choose to trigger a second FIDO
+   authentication with a different set of authentication requirements.
+   This is done by sending a new Authentication Request message to the
+   client.  This message MUST include a PKIDs attribute with only the
+   PKID of the credential used in the previous FIDO authentication
+   process.
+
+   The client then triggers a new FIDO authentication process and
+   answers with an Authentication Response message.
+
+   The server MUST NOT trigger a challenge with the same Public Key
+   Identifier and Authentication Requirements twice.
 
    *  Server sends initial data
 
@@ -457,8 +621,6 @@ Table of Contents
       -  When not Successful:
 
          o  Protected Failure Indicator
-
-4.3.2.1.  General Protocol sequence
 
 5.  Implementation Guidelines
 
@@ -600,7 +762,15 @@ Table of Contents
 
 8.  IANA Considerations
 
-   This document has no IANA actions.
+   This document has IANA actions:
+
+   *  EAP type code point for EAP-FIDO
+
+   *  EAP-FIDO registry
+
+      -  Message types
+
+      -  Attributes
 
 9.  References
 
@@ -662,20 +832,106 @@ Table of Contents
               accessing Public Key Credentials Level 2", 8 April 2021,
               <https://www.w3.org/TR/2021/REC-webauthn-2-20210408/>.
 
-Appendix A.  Open Questions regarding Protocol design
+Appendix A.  Example use cases and protocol flows
+
+A.1.  Authentication using Passkeys with silent authentication
+
+   With this use case, the server will send an Authentication Request
+   containing only the Relying Party Id attribute.
+
+   The client can trigger the silent authentication with the Passkey
+   stored on the FIDO authenticator and includes the response from the
+   FIDO authenticator into the Authentication Response message.
+
+   The server can look up the Public Key Identifier in its database,
+   verify the FIDO signature with the stored public key and, if the
+   signature was valid, send a protected success indicator to the
+   client.  The client responds with an acknowledgement and the server
+   sends an EAP-Success
+
+A.2.  Authentication using Passkeys with silent auth for WiFi and uv
+      auth for VPN
+
+   With this use case, the server will modify the Authentication Request
+   based on which RADIUS client (the Wifi Controller or the VPN
+   appliance) sent the request.
+
+   If the WiFi appliance sent the request, silent auth is used, and the
+   flow is identical with the previous use case.
+
+   If the request came from the VPN appliance (e.g. because the VPN is
+   done via IPSEC with EAP), the server adds "uv" in the Authentication
+   Requirements attribute, which triggers an UV action on the client's
+   side.
+
+   The client triggers the Passkey authentication with user verification
+   and responds to the server with the authentication data.  The server
+   verifies the signature, sends a success indication, the client
+   acknowledges and the server sends an EAP-Success.
+
+A.3.  Authentication with non-residential FIDO keys
+
+   In this use case, the FIDO authenticator does not have a Passkey for
+   the Relying Party ID.  Instead, the server has a list of Public Key
+   Identifiers stored for each username.
+
+   After the initial Authentication Request from the server, the client
+   does not have enough data to trigger the FIDO authentication, so it
+   needs additional information.
+
+   The client then sends an Information Request message with its
+   username.
+
+   The server looks up the username in its database and sends back a
+   list of Public Key Identifiers it has stored for this user with an
+   Information Response message.
+
+   The client can now trigger the FIDO authentication with this list and
+   responds with an Authentication Response, that includes the Public
+   Key Identifier that was actually used for this FIDO authentication.
+
+   The server can now verify the signature and client and server
+   finalize the EAP method.
+
+A.4.  Authentication with non-residential FIDO keys and user-specific
+      authentication policies
+
+   In this use case, different users have different authentication
+   policies, i.e. employees are allowed to use silent authentication,
+   but administrators need an authentication with user presence.
+
+   The server starts with an AuthenticationRequest and no authentication
+   requirements or an empty array as authentication requirements.  The
+   client transmits its identity to the server in the Information
+   Request message.  Now the server looks up the user and their
+   registered public key identifiers, and checks whether or not user
+   presence verification is neccessary.
+
+   If it is necessary, the server includes an authentication
+   requirements attribute with the "up" value along with the PKIDs in
+   the Information Response message.  Since the client discards any
+   previous attribute values, it now performs a FIDO authentication with
+   user presence, and responds to the server.
+
+A.5.  Authentication with mandatory verification after a timespan
+
+A.6.  Authentication with mandatory verification after a timespan with a
+      grace period
+
+Appendix B.  Open Questions regarding Protocol design
 
    Note to RFC Editor: Remove this section before publication.
 
    Since this specification is an early draft, there are a lot of open
    questions that we want to get community feedback on.
 
-A.1.  How to determine the FIDO Relying Party ID?
+B.1.  How to determine the FIDO Relying Party ID?
 
    FIDO needs a relying party ID to function.  The question is how this
    RPID is determined, there are several options that all have pros and
    cons.
 
-A.1.1.  Option 1: Configuration
+B.1.1.  Option 1: Configuration
 
    The first option would be to just have the RPID as a configuration
    item, maybe with a default on the realm of the outer username.
@@ -689,7 +945,7 @@ A.1.1.  Option 1: Configuration
    If the RPID deviates from the realm, the client could send the
    requested RPID using Server Name Indication.
 
-A.1.2.  Option 2: Mandate RPID to equal Realm of the Username
+B.1.2.  Option 2: Mandate RPID to equal Realm of the Username
 
    The second option would be to mandate that the RPID is equal to the
    realm portion of the username.  This restricts options on how to use
@@ -698,7 +954,7 @@ A.1.2.  Option 2: Mandate RPID to equal Realm of the Username
    should not be used as RPID due to security concerns, or different
    RPIDs should be used under the same routing realm.
 
-A.1.3.  Option 3: RPID is determined by the server and sent before the
+B.1.3.  Option 3: RPID is determined by the server and sent before the
         TLS handshake
 
    Since the RPID plays an important role in the decision whether or not
@@ -713,7 +969,7 @@ A.1.3.  Option 3: RPID is determined by the server and sent before the
    investigated, since the RPID could be modified by an on-path
    attacker.
 
-A.1.4.  Option 4: RPID is determined by the server and sent after the
+B.1.4.  Option 4: RPID is determined by the server and sent after the
         TLS handshake
 
    WIth this option, the problem is that the client needs to cache the
