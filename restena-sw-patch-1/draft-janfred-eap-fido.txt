@@ -242,7 +242,8 @@ Table of Contents
    *  a CA Certificate trust store which contains at least the root CA
       that issued the server certificate on the EAP-FIDO server.  This
       can be the system-wide WebPKI store, or a dedicated store for the
-      specific purpose of EAP-FIDO server validation.
+      specific purpose of EAP-FIDO server validation.  Implementations
+      MUST NOT allow to disable certificate checks.
 
 4.1.2.  Optional Configuration items
 

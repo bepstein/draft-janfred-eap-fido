@@ -1392,7 +1392,7 @@ The server will answer with a list of FIDO key IDs and the client will attempt t
               <p id="section-4.1.1-1.1.1">a routing ID (see <a href="#openquestions_rpid" class="auto internal xref">Appendix B.1</a>) - i.e. "the RADIUS realm"<a href="#section-4.1.1-1.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-4.1.1-1.2">
-              <p id="section-4.1.1-1.2.1">a CA Certificate trust store which contains at least the root CA that issued the server certificate on the EAP-FIDO server. This can be the system-wide WebPKI store, or a dedicated store for the specific purpose of EAP-FIDO server validation.<a href="#section-4.1.1-1.2.1" class="pilcrow">¶</a></p>
+              <p id="section-4.1.1-1.2.1">a CA Certificate trust store which contains at least the root CA that issued the server certificate on the EAP-FIDO server. This can be the system-wide WebPKI store, or a dedicated store for the specific purpose of EAP-FIDO server validation. Implementations <span class="bcp14">MUST NOT</span> allow to disable certificate checks.<a href="#section-4.1.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
