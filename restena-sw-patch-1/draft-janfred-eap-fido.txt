@@ -249,9 +249,8 @@ Table of Contents
 
    *  Only if FIDO2 discoverable credentials are not used: a username
 
-   *  Only if FIDO2 discoverable credentials are used, and the FIDO2
-      credential's scope (see Appendix B.1 is not a suffix of the
-      routing ID: the exact scope for the FIDO transaction
+   *  Only if the FIDO2 credential's scope (see Appendix B.1 is not a
+      suffix of the routing ID: the exact scope for the FIDO transaction
 
 4.2.  TLS handshake phase
 
@@ -337,8 +336,16 @@ Table of Contents
 
    *  Implementations MAY support pinning a trust anchor
 
-   *  The RPID MUST be validated against the certificate name (How
-      exactly is still TODO)
+   *  The RPID MUST be validated against the certificate name:
+
+      -  if the server name is explicitly configured, one of the
+         subjectAltNameDNS names in the certificate must be an exact
+         match to the configured server name.
+
+      -  if the server name is not explicitly configured, one of the
+         subjectAltNameDNS names in the certificate must be either an
+         exact match with the routing ID or end with CONCAT('.', routing
+         ID)
 
    *  TODO: OCSP Stapling?  Mandatory or not?
 
@@ -624,8 +631,9 @@ Table of Contents
    discussion on that see Appendix B.1.  If the expected RPID is
    explicitly configured, the client verifies that the RPID as sent
    matches exactly the RPID as configured.  If the expected RPID is not
-   explicitly configured, the client verifies that RPID as sent ends
-   with the configured routing ID.
+   explicitly configured, the client verifies that the sent RPID is
+   either identical to the routing ID or ends with CONCAT('.', routing
+   ID)
 
    The client data is a concatenation of two items.
 

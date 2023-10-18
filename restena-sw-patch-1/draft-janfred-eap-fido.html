@@ -1410,7 +1410,7 @@ The server will answer with a list of FIDO key IDs and the client will attempt t
               <p id="section-4.1.2-1.2.1">Only if FIDO2 discoverable credentials are not used: a username<a href="#section-4.1.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-4.1.2-1.3">
-              <p id="section-4.1.2-1.3.1">Only if FIDO2 discoverable credentials are used, and the FIDO2 credential's scope (see <a href="#openquestions_rpid" class="auto internal xref">Appendix B.1</a> is not a suffix of the routing ID: the exact scope for the FIDO transaction<a href="#section-4.1.2-1.3.1" class="pilcrow">¶</a></p>
+              <p id="section-4.1.2-1.3.1">Only if the FIDO2 credential's scope (see <a href="#openquestions_rpid" class="auto internal xref">Appendix B.1</a> is not a suffix of the routing ID: the exact scope for the FIDO transaction<a href="#section-4.1.2-1.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -1502,7 +1502,15 @@ Since EAP carrier protocols may constrain the length of an EAP message, it may b
               <p id="section-4.2.5-2.2.1">Implementations <span class="bcp14">MAY</span> support pinning a trust anchor<a href="#section-4.2.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-4.2.5-2.3">
-              <p id="section-4.2.5-2.3.1">The RPID <span class="bcp14">MUST</span> be validated against the certificate name (How exactly is still TODO)<a href="#section-4.2.5-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-4.2.5-2.3.1">The RPID <span class="bcp14">MUST</span> be validated against the certificate name:<a href="#section-4.2.5-2.3.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2.5-2.3.2.1">
+                  <p id="section-4.2.5-2.3.2.1.1">if the server name is explicitly configured, one of the subjectAltNameDNS names in the certificate must be an exact match to the configured server name.<a href="#section-4.2.5-2.3.2.1.1" class="pilcrow">¶</a></p>
+</li>
+                <li class="normal" id="section-4.2.5-2.3.2.2">
+                  <p id="section-4.2.5-2.3.2.2.1">if the server name is not explicitly configured, one of the subjectAltNameDNS names in the certificate must be either an exact match with the routing ID or end with CONCAT('.', routing ID)<a href="#section-4.2.5-2.3.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              </ul>
 </li>
             <li class="normal" id="section-4.2.5-2.4">
               <p id="section-4.2.5-2.4.1">TODO: OCSP Stapling? Mandatory or not?<a href="#section-4.2.5-2.4.1" class="pilcrow">¶</a></p>
@@ -1833,7 +1841,7 @@ This message <span class="bcp14">MUST</span> include a PKIDs attribute with only
         </h3>
 <p id="section-4.4-1">This section will describe the actual FIDO authentication process, that is performed between the EAP-FIDO client and the FIDO authenticator.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
 <p id="section-4.4-2">The client will use CTAP2 <span>[<a href="#FIDO-CTAP2" class="cite xref">FIDO-CTAP2</a>]</span> to communicate with the authenticator.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
-<p id="section-4.4-3">The Relying Party ID (RPID) is configured or sent by the server. For discussion on that see <a href="#openquestions_rpid" class="auto internal xref">Appendix B.1</a>. If the expected RPID is explicitly configured, the client verifies that the RPID as sent matches exactly the RPID as configured. If the expected RPID is not explicitly configured, the client verifies that RPID as sent ends with the configured routing ID.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">The Relying Party ID (RPID) is configured or sent by the server. For discussion on that see <a href="#openquestions_rpid" class="auto internal xref">Appendix B.1</a>. If the expected RPID is explicitly configured, the client verifies that the RPID as sent matches exactly the RPID as configured. If the expected RPID is not explicitly configured, the client verifies that the sent RPID is either identical to the routing ID or ends with CONCAT('.', routing ID)<a href="#section-4.4-3" class="pilcrow">¶</a></p>
 <p id="section-4.4-4">The client data is a concatenation of two items.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
 <p id="section-4.4-5">The first item is derived from the TLS keying material:<a href="#section-4.4-5" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-4.4-6">
