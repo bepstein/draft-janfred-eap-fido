@@ -1032,7 +1032,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Rieckers &amp; Winter</td>
-<td class="center">Expires 20 April 2024</td>
+<td class="center">Expires 22 April 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1045,12 +1045,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-janfred-eap-fido-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-10-18" class="published">18 October 2023</time>
+<time datetime="2023-10-20" class="published">20 October 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-04-20">20 April 2024</time></dd>
+<dd class="expires"><time datetime="2024-04-22">22 April 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1101,7 +1101,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 April 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 April 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1763,7 +1763,7 @@ This error condition does not neccessarily lead to an authentication failure, si
 This message is sent along with the last message of the server's TLS handshake.<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-2">The Authentication Request can include authentication requirements, additional client data and a list of Public Key Identifiers.<a href="#section-4.3.2-2" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-3">The client then decides if it has sufficient information to perform the FIDO authentication.
-This can be done by probing the FIDO authenticator with all information given in the Authentication Request message..<a href="#section-4.3.2-3" class="pilcrow">¶</a></p>
+This can be done by probing the FIDO authenticator with all information given in the Authentication Request message.<a href="#section-4.3.2-3" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-4">If the FIDO authentication is already possible at this point, the client performs the FIDO authentication process and sends an Authentication Response message with the results from the FIDO authentication to the server.
 This authentication flow can be used if the FIDO authenticator has a Passkey registered for the given Relying Party ID.<a href="#section-4.3.2-4" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-5">If the client needs additional information, i.e. because it does not use Passkeys and therefore needs a list of Key Identifiers, the client sends an information request to the server, which may include additional information from client to help the server to fulfil the information request.
@@ -1791,7 +1791,7 @@ This message <span class="bcp14">MUST</span> include a PKIDs attribute with only
 <a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-fido-authentication" class="section-name selfRef">FIDO authentication</a>
         </h3>
 <p id="section-4.4-1">This section will describe the actual FIDO authentication process, that is performed between the EAP-FIDO client and the FIDO authenticator.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
-<p id="section-4.4-2">The client will use CTAP <span>[<a href="#FIDO-CTAP2" class="cite xref">FIDO-CTAP2</a>]</span> to communicate with the authenticator.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">The client will use CTAP version 2.0 or above <span>[<a href="#FIDO-CTAP2" class="cite xref">FIDO-CTAP2</a>]</span> to communicate with the authenticator.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
 <p id="section-4.4-3">The Relying Party ID is configured or sent by the server. For discussion on that see <a href="#openquestions_rpid" class="auto internal xref">Appendix B.1</a>.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
 <p id="section-4.4-4">The client data is a concatenation of two items.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
 <p id="section-4.4-5">The first item is derived from the TLS keying material:<a href="#section-4.4-5" class="pilcrow">¶</a></p>
@@ -1826,9 +1826,9 @@ The result is the clientDataHash for the FIDO authentication.<a href="#section-4
         <h3 id="name-registration-of-fido2-keys-">
 <a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-registration-of-fido2-keys-" class="section-name selfRef">Registration of FIDO2 keys is out of scope</a>
         </h3>
-<p id="section-6.1-1">The FIDO CTAP2 protocol has distinct primitives for the registration and the usage of a FIDO2 credential.
+<p id="section-6.1-1">The FIDO CTAP protocol has distinct primitives for the registration and the usage of a FIDO2 credential.
 This specification requires that the registratrion of the security token has been done out-of-band, for example using the WebAuthn protocol in a browser context.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">There are multiple degrees of freedom when registering a token with CTAP2.
+<p id="section-6.1-2">There are multiple degrees of freedom when registering a token with CTAP version 2.
 This specification recognises the following choices at registration time, and defines how to effectuate an authentication transaction for any combination of these choices.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <div id="discoverable-credentials-vs-non-discoverable-credentials">
 <section id="section-6.1.1">
@@ -1896,7 +1896,7 @@ In EAP-FIDO, the following three notions interplay:<a href="#section-6.2-1" clas
             <p id="section-6.2-2.2.1">the servername as presented during the EAP-TLS exchange by the EAP-FIDO server<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.2-2.3">
-            <p id="section-6.2-2.3.1">the relyingPartyIdentifier (rpId) that is used during the FIDO CTAP2 client authentication phase<a href="#section-6.2-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.2-2.3.1">the relyingPartyIdentifier (rpId) that is used during the FIDO CTAP client authentication phase<a href="#section-6.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-6.2-3">EAP-FIDO requires the registered scope to be:<a href="#section-6.2-3" class="pilcrow">¶</a></p>

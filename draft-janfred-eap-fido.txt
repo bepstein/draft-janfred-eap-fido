@@ -5,8 +5,8 @@
 EAP Method Update                                         J.-F. Rieckers
 Internet-Draft                                                       DFN
 Intended status: Standards Track                               S. Winter
-Expires: 20 April 2024                                           RESTENA
-                                                         18 October 2023
+Expires: 22 April 2024                                           RESTENA
+                                                         20 October 2023
 
 
                                 EAP-FIDO
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 April 2024.
+   This Internet-Draft will expire on 22 April 2024.
 
 Copyright Notice
 
@@ -539,7 +539,7 @@ Table of Contents
    The client then decides if it has sufficient information to perform
    the FIDO authentication.  This can be done by probing the FIDO
    authenticator with all information given in the Authentication
-   Request message..
+   Request message.
 
    If the FIDO authentication is already possible at this point, the
    client performs the FIDO authentication process and sends an
@@ -599,8 +599,8 @@ Table of Contents
    that is performed between the EAP-FIDO client and the FIDO
    authenticator.
 
-   The client will use CTAP [FIDO-CTAP2] to communicate with the
-   authenticator.
+   The client will use CTAP version 2.0 or above [FIDO-CTAP2] to
+   communicate with the authenticator.
 
    The Relying Party ID is configured or sent by the server.  For
    discussion on that see Appendix B.1.
@@ -628,14 +628,14 @@ Table of Contents
 
 6.1.  Registration of FIDO2 keys is out of scope
 
-   The FIDO CTAP2 protocol has distinct primitives for the registration
+   The FIDO CTAP protocol has distinct primitives for the registration
    and the usage of a FIDO2 credential.  This specification requires
    that the registratrion of the security token has been done out-of-
    band, for example using the WebAuthn protocol in a browser context.
 
    There are multiple degrees of freedom when registering a token with
-   CTAP2.  This specification recognises the following choices at
-   registration time, and defines how to effectuate an authentication
+   CTAP version 2.  This specification recognises the following choices
+   at registration time, and defines how to effectuate an authentication
    transaction for any combination of these choices.
 
 6.1.1.  Discoverable credentials vs. Non-Discoverable credentials
@@ -711,7 +711,7 @@ Table of Contents
       EAP-FIDO server
 
    *  the relyingPartyIdentifier (rpId) that is used during the FIDO
-      CTAP2 client authentication phase
+      CTAP client authentication phase
 
    EAP-FIDO requires the registered scope to be:
 
