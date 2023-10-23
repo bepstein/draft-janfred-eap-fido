@@ -5,8 +5,8 @@
 EAP Method Update                                         J.-F. Rieckers
 Internet-Draft                                                       DFN
 Intended status: Standards Track                               S. Winter
-Expires: 22 April 2024                                           RESTENA
-                                                         20 October 2023
+Expires: 25 April 2024                                           RESTENA
+                                                         23 October 2023
 
 
                                 EAP-FIDO
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 April 2024.
+   This Internet-Draft will expire on 25 April 2024.
 
 Copyright Notice
 
@@ -114,6 +114,8 @@ Table of Contents
                before the TLS handshake
        B.1.4.  Option 4: RPID is determined by the server and sent
                after the TLS handshake
+     B.2.  Missing Features
+       B.2.1.  Deprovisioning of EAP configuration
    Appendix C.  Document Status
      C.1.  Change History
      C.2.  Missing Specs
@@ -193,11 +195,11 @@ Table of Contents
 
    During the TLS handshake phase, the client and server establish a TLS
    tunnel.  This is done using EAP-TLS [RFC5216], [RFC9190], [RFC9427]
-   with the modifications described in TODO:SECTION LINK.  As part of
-   the TLS handshake protocol, the EAP-FIDO server will send its
-   certificate along with a chain of certificates leading to the
-   certificate of a trusted CA.  The client will check this certificate
-   using the rules in TODO:SECTION LINK.
+   with the modifications described in Section 4.2.4.  As part of the
+   TLS handshake protocol, the EAP-FIDO server will send its certificate
+   along with a chain of certificates leading to the certificate of a
+   trusted CA.  The client will check this certificate using the rules
+   in Section 4.2.5.
 
    Once the TLS tunnel is established, the client and server proceed to
    the FIDO-exchange phase to perform the authentication of the client.
@@ -258,7 +260,7 @@ Table of Contents
    MUST NOT be set in any subsequent packet.
 
 
-   // Depending on the decision on the way, the RPID is determined, some
+   // Depending on the decision on the way the RPID is determined, some
    // additional spec may be added here, see Appendix B.1.
    //
    // -- Janfred
@@ -431,7 +433,7 @@ Table of Contents
    for the current authentication exchange.
 
    The attributes field of the message MUST contain at least the Error
-   Code attribute and MAY contain the Error Description field.
+   Code attribute and MAY contain the Error Description attribute.
 
 4.3.1.3.  Authentication Request
 
@@ -460,9 +462,12 @@ Table of Contents
       value, to ensure forward compatibility.
 
    Since this packet signals the start of a new authentication, the
-   client MUST discard any information from previous authentication
-   requests and initialize a new authentication, even if the previous
-   authentication exchange was not completed.
+   client MUST initialize a new authentication and MUST NOT reuse
+   information from any previous authentication attempt, even if the
+   previous authentication exchange was not completed.  It MAY cache
+   some data to perform sanity checks, i.e. to protect itself against
+   misbehaving servers that try to re-initialize an authentication with
+   the same parameters multiple times.
 
 4.3.1.4.  Authentication Response
 
@@ -494,8 +499,8 @@ Table of Contents
    the server.
 
    This is the case if Passkeys are not used, since the FIDO
-   authenticator needs the public key identifier to access the
-   credentials.
+   authenticator needs the list of acceptable public key identifiers to
+   access the actual credentials on the FIDO token.
 
    With the information request the client can transmit additional
    information that help the server to compile this information.
@@ -515,9 +520,9 @@ Table of Contents
    The attributes field in the information response can contain any
    attribute that is also allowed in the Authentication Request packet.
    If an attribute was both present in the Authentication Request and
-   the Information Response packet, the client MUST discard the
-   attribute value(s) sent in the Authentication Request and use the
-   value(s) in the Information Response packet.
+   the Information Response packet, the client MUST discard the previous
+   value(s) of this attribute that were sent in the Authentication
+   Request and use the value(s) in the Information Response packet.
 
 4.3.1.7.  Error
 
@@ -533,9 +538,9 @@ Table of Contents
 
 4.3.2.  Potocol Sequence
 
-   The FIDO exchange start with the server sending an authentication
-   request to the client.  This message is sent along with the last
-   message of the server's TLS handshake.
+   The FIDO exchange phase starts with the server sending an
+   authentication request to the client.  This message is sent along
+   with the last message of the server's TLS handshake.
 
    The Authentication Request can include authentication requirements,
    additional client data and a list of Public Key Identifiers.
@@ -735,10 +740,11 @@ Table of Contents
       tunnels
 
    Since there already exist EAP methods that provide a TLS tunnel and
-   are capable of encapsulating further EAP methods, e.g.  EAP-PEAP or
-   EAP-TTLS, the question arises, why this specification does not focus
-   solely on the FIDO exchange as a standalone EAP method instead of re-
-   specifying a new EAP-method that again makes use of EAP-TLS.
+   are capable of encapsulating further EAP methods, e.g.  EAP-PEAP,
+   EAP-TTLS or EAP-TEAP, the question arises, why this specification
+   does not focus solely on the FIDO exchange as a standalone EAP method
+   instead of re-specifying a new EAP-method that again makes use of
+   EAP-TLS.
 
    The main reason for a decision against this is the potential for
    misconfiguration.  One of the goals for this EAP method is to provide
@@ -747,13 +753,13 @@ Table of Contents
    this goal, since in most supplicants the configuration for the
    different phases of the tunneled TLS methods is done seperately, so
    the users would have to configure the certificate check parameters
-   manually again.  Additionally, not every supplicant application
-   allows access to information about the phase 1 exchange, namely the
-   server certificate parameters, which is neccessary for the security
-   of the EAP-FIDO exchange.  Specifying EAP-FIDO as standalone EAP
-   methods would therefore require modifying the EAP-TTLS or EAP-PEAP
-   stack.  Implementers might be tempted to re-use the insecure and
-   error-prone configuration interfaces.  To prevent this from the
+   manually again.  Additionally, not every supplicant application may
+   allow the code for the phase 2 exchange to access information about
+   the phase 1 exchange, namely the server certificate parameters, which
+   is neccessary for the security of the EAP-FIDO exchange.  Specifying
+   EAP-FIDO as standalone EAP methods could therefore require modifying
+   the EAP stack.  Implementers might be tempted to re-use the insecure
+   and error-prone configuration interfaces.  To prevent this from the
    start, EAP-FIDO specifies an EAP-TLS based EAP method that cannot be
    used standalone.
 
@@ -858,6 +864,11 @@ Table of Contents
               FIDO Alliance, "FIDO Security Reference", 23 May 2022,
               <https://fidoalliance.org/specs/common-specs/fido-
               security-ref-v2.1-ps-20220523.html>.
+
+   [IETF115-emu-minutes]
+              IETF, "EMU @ IETF 115, Minutes", 7 November 2022,
+              <https://datatracker.ietf.org/meeting/115/materials/
+              minutes-115-emu-202211071530-00>.
 
    [RFC3748]  Aboba, B., Blunk, L., Vollbrecht, J., Carlson, J., and H.
               Levkowetz, Ed., "Extensible Authentication Protocol
@@ -993,7 +1004,10 @@ A.6.  Authentication with mandatory verification after a timespan with a
    example, this time there is a grace period that still allows a silent
    authentication for a while after the timer expired.  The intention is
    to not kick out the user in the moment the timer expires, i.e. a user
-   is currently not in the vicinity of the device at that time.
+   is currently not in the vicinity of the device at that time, but one
+   would not want to kick out the user if it needs to reconnect due to
+   poor wifi performance.  Instead, the user may choose a convinient
+   time to verify their identity/presence within this grace period.
 
    The protocol flow is the same as the previous example, but this time
    the second Authentication Request from the server cannot be answered
@@ -1002,9 +1016,11 @@ A.6.  Authentication with mandatory verification after a timespan with a
    error code TODO (FIDO authentication Timeout).
 
    The server can now decide whether or not the silent authentication is
-   still acceptable.  If it is, it answers with a Success Indicator.  If
-   not, the server will send a Failure Indicator with the appropriate
-   error code.
+   still acceptable.  If it is, meaning that the timeout for silent
+   authentication has expired, but it is still in the grace period, it
+   answers with a Success Indicator.  If not, meaning that the grace
+   period has expired too, the server will send a Failure Indicator with
+   the appropriate error code.
 
 A.7.  2FA-AUthentication with client certificate on TLS layer and FIDO
       in the inner authentication
@@ -1023,7 +1039,8 @@ A.7.  2FA-AUthentication with client certificate on TLS layer and FIDO
 
 Appendix B.  Open Questions regarding Protocol design
 
-   Note to RFC Editor: Remove this section before publication.
+   Note to RFC Editor: Remove this section and all references from this
+   section before publication.
 
    Since this specification is an early draft, there are a lot of open
    questions that we want to get community feedback on.
@@ -1108,6 +1125,26 @@ B.1.4.  Option 4: RPID is determined by the server and sent after the
    This, however, adds a whole lot more of security concerns, especially
    in environments with different independent devisions under the same
    domain suffix.
+
+B.2.  Missing Features
+
+   There are a lot of features, that have been brought up by several
+   people at several occations.  This EAP method could include spec to
+   address these problems.  Also there may be FIDO-specific things that
+   are not part of this specification.
+
+B.2.1.  Deprovisioning of EAP configuration
+
+   It may be useful to directly include a way to signal in-band that an
+   EAP configuration should be deleted.
+
+   The idea stems from the discussion at IETF 115 about EAP-DIE
+   [IETF115-emu-minutes].
+
+   With EAP-FIDO it may be desirable to also allow for deletion of
+   persistent credentials/Passkeys.
+
+   Input on the need and specific way to achieve this is welcome.
 
 Appendix C.  Document Status
 
