@@ -5,8 +5,8 @@
 EAP Method Update                                         J.-F. Rieckers
 Internet-Draft                                                       DFN
 Intended status: Standards Track                               S. Winter
-Expires: 20 April 2024                                           RESTENA
-                                                         18 October 2023
+Expires: 25 April 2024                                           RESTENA
+                                                         23 October 2023
 
 
                                 EAP-FIDO
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 April 2024.
+   This Internet-Draft will expire on 25 April 2024.
 
 Copyright Notice
 
@@ -90,11 +90,12 @@ Table of Contents
      6.2.  FIDO2 key scopes
      6.3.  EAP-Method with EAP-TLS vs standalone EAP method to be used
            in tunnels
-   7.  Security Considerations
-   8.  IANA Considerations
-   9.  References
-     9.1.  Normative References
-     9.2.  Informative References
+   7.  Implementation Status
+   8.  Security Considerations
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
    Appendix A.  Example use cases and protocol flows
      A.1.  Authentication using Passkeys with silent authentication
      A.2.  Authentication using Passkeys with silent auth for WiFi and
@@ -115,6 +116,9 @@ Table of Contents
                before the TLS handshake
        B.1.4.  Option 4: RPID is determined by the server and sent
                after the TLS handshake
+   Appendix C.  Document Status
+     C.1.  Change History
+     C.2.  Missing Specs
    Acknowledgments
    Authors' Addresses
 
@@ -627,11 +631,13 @@ Table of Contents
    The client will use CTAP version 2.0 or above [FIDO-CTAP2] to
    communicate with the authenticator.
 
-   The Relying Party ID (RPID) is configured or derived from the server
-   certificate subjectAltName:DNS.  For discussion on that see
-   Appendix B.1.  In analogy to WebAuthn, the client verifies that the
-   RPID either matches exactly the subjectAltName:DNS of the certificate
-   or that it ends with CONCAT('.', subjectAltName:DNS).
+   The Relying Party ID (RPID) either explicitly configured, derived
+   from the RADIUS routing realm, from the server certificate
+   subjectAltName:DNS or sent by the server.  In analogy to WebAuthn,
+   the client needs to verify that the RPID either matches exactly the
+   subjectAltName:DNS of the certificate or that the subjectAltName is a
+   subdomain of the RPID.  For discussion on the topic regarding the
+   relationship RPID, SAN and RADIUS Realm, see Appendix B.1.
 
    The client data is a concatenation of two items.
 
@@ -781,11 +787,47 @@ Table of Contents
    means of specification to be more resistant against implementation
    errors and prevent error-prone user interfaces.
 
-7.  Security Considerations
+7.  Implementation Status
+
+   Note to RFC editor: Remove this section, as well as the reference to
+   [RFC7942] before publication
+
+   This section records the status of known implementations of the
+   protocol defined by this specification at the time of posting of this
+   Internet-Draft, and is based on a proposal described in [RFC7942].
+   The description of implementations in this section is intended to
+   assist the IETF in its decision processes in progressing drafts to
+   RFCs.  Please note that the listing of any individual implementation
+   here does not imply endorsement by the IETF.  Furthermore, no effort
+   has been spent to verify the information presented here that was
+   supplied by IETF contributors.  This is not intended as, and must not
+   be construed to be, a catalog of available implementations or their
+   features.  Readers are advised to note that other implementations may
+   exist.
+
+   According to [RFC7942], "this will allow reviewers and working groups
+   to assign due consideration to documents that have the benefit of
+   running code, which may serve as evidence of valuable experimentation
+   and feedback that have made the implemented protocols more mature.
+   It is up to the individual working groups to use this information as
+   they see fit".
+
+   There is one early prototype proof-of-concept implementation of EAP-
+   FIDO into hostap (hostapd for the server side, wpa_supplicant on the
+   client side) available.  The implementation was done before the
+   specification of this draft was finished and is therefore not
+   compatible with any draft version (different message format,
+   simplified message flow, missing security checks), but serves as a
+   proof-of-concept for the overall principle of using FIDO to perform
+   an eduroam login.  The source code can be found under
+   https://git.rieckers.it/rieckers/hostap/-/tree/eap_fido_poc_tnc23
+   (https://git.rieckers.it/rieckers/hostap/-/tree/eap_fido_poc_tnc23)
+
+8.  Security Considerations
 
    TODO Security
 
-8.  IANA Considerations
+9.  IANA Considerations
 
    This document has IANA actions:
 
@@ -797,9 +839,9 @@ Table of Contents
 
       -  Attributes
 
-9.  References
+10.  References
 
-9.1.  Normative References
+10.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -824,7 +866,7 @@ Table of Contents
               DOI 10.17487/RFC9427, June 2023,
               <https://www.rfc-editor.org/rfc/rfc9427>.
 
-9.2.  Informative References
+10.2.  Informative References
 
    [FIDO-CTAP2]
               FIDO Alliance, "Client to Authenticator Protocol (CTAP)",
@@ -852,6 +894,11 @@ Table of Contents
               Protocol Version 0 (EAP-TTLSv0)", RFC 5281,
               DOI 10.17487/RFC5281, August 2008,
               <https://www.rfc-editor.org/rfc/rfc5281>.
+
+   [RFC7942]  Sheffer, Y. and A. Farrel, "Improving Awareness of Running
+              Code: The Implementation Status Section", BCP 205,
+              RFC 7942, DOI 10.17487/RFC7942, July 2016,
+              <https://www.rfc-editor.org/rfc/rfc7942>.
 
    [WebAuthn] World Wide Web Consortium, "Web Authentication: An API for
               accessing Public Key Credentials Level 2", 8 April 2021,
@@ -1009,8 +1056,29 @@ Appendix B.  Open Questions regarding Protocol design
 B.1.  How to determine the FIDO Relying Party ID?
 
    FIDO needs a relying party ID to function.  The question is how this
-   RPID is determined, there are several options that all have pros and
-   cons.
+   RPID is determined and verified, there are several options that all
+   have pros and cons.
+
+   The main thing is to have in mind, that there are three relevant
+   parameters, that need to be put into a certain relationship:
+
+   *  the RADIUS realm (i.e. 'anonymous@dfn.de')
+
+   *  the RPID (i.e. 'eduroam.dfn.de')
+
+   *  the Server Certificate Name (usually subjectAltName:DNS, i.e.
+      'radius.eduroam.dfn.de', in the following abbreviated simply with
+      SAN)
+
+   All these three parameters need to be in a pre-defined relationship
+   to allow a simple and hard-to-mess-up-and-still-secure configuration.
+   Both the client and the server have to agree on what the RPID is, in
+   order for the FIDO authentication to succeed.  If there is a defined
+   relationship between the RPID and the certificate name (i.e.  SAN
+   needs to be a subrealm of the RPID), then the client needs to verify
+   the certificate against exactly that.  When does the client do that?
+   What security implications does that bring?  All these options need
+   some thought.
 
 B.1.1.  Option 1: Configuration
 
@@ -1053,7 +1121,7 @@ B.1.3.  Option 3: RPID is determined by the server and sent before the
 B.1.4.  Option 4: RPID is determined by the server and sent after the
         TLS handshake
 
-   WIth this option, the problem is that the client needs to cache the
+   With this option, the problem is that the client needs to cache the
    server certificate in order to determine if the RPID is valid. for
    the given certificate, unless the rules for certificate verification
    and RPID determination specify it otherwise.  One possibility to
@@ -1065,6 +1133,23 @@ B.1.4.  Option 4: RPID is determined by the server and sent after the
    This, however, adds a whole lot more of security concerns, especially
    in environments with different independent devisions under the same
    domain suffix.
+
+Appendix C.  Document Status
+
+   Note to RFC Editor: Remove this section before publication.
+
+C.1.  Change History
+
+   -00: Initial draft version
+
+C.2.  Missing Specs
+
+   *  Error codes and Error handling
+
+   *  Key derivation for i.e. WPA2
+
+      -  Will be exported from TLS layer, maybe include some information
+         from the FIDO exchange to bind it to the FIDO exchange?
 
 Acknowledgments
 
