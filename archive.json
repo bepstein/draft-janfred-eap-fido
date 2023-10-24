@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-10-22T01:01:23.346442+00:00",
+  "timestamp": "2023-10-24T00:57:11.557848+00:00",
   "repo": "Janfred/draft-janfred-eap-fido",
   "labels": [
     {
@@ -63,13 +63,13 @@
       "labels": [],
       "body": "\u2026e, FIDO2 scope\r\n\r\nparticularly the validations done when either implicitly deriving from realm vs. actual config",
       "createdAt": "2023-10-18T12:19:44Z",
-      "updatedAt": "2023-10-18T14:37:47Z",
+      "updatedAt": "2023-10-23T10:32:04Z",
       "baseRepository": "Janfred/draft-janfred-eap-fido",
       "baseRefName": "main",
-      "baseRefOid": "90501b246e7ce22d2b4537dd0eb07b31082c0cee",
+      "baseRefOid": "b676212e1b7ece723f932551f48b3f8afbb2056e",
       "headRepository": "Janfred/draft-janfred-eap-fido",
       "headRefName": "restena-sw-patch-1",
-      "headRefOid": "5105db98e6136f85e9eb14c2fe738e3c7e9d0b5d",
+      "headRefOid": "305e05f2caa1775e094449a1a23985077532bd7c",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -377,6 +377,26 @@
               "body": "Either RPID=Realm or we configure both (or at least offer the option to configure both, but if RPID is left unconfigured it will default to the Realm)",
               "createdAt": "2023-10-18T14:37:47Z",
               "updatedAt": "2023-10-18T14:37:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOJtVZac5k3Sf2",
+          "commit": {
+            "abbreviatedOid": "de41a9b"
+          },
+          "author": "Janfred",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-10-23T10:32:03Z",
+          "updatedAt": "2023-10-23T10:32:04Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "I've changed the wording a bit to present that this is an open discussion item.",
+              "createdAt": "2023-10-23T10:32:04Z",
+              "updatedAt": "2023-10-23T10:32:04Z"
             }
           ]
         }
